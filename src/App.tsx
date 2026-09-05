@@ -112,9 +112,15 @@ export default function App() {
   };
 
   const handleProjectCreated = (newProj: Project) => {
-    setProjects(prev => [newProj, ...prev]);
+    if (!newProj || !newProj.id) return;
+    setProjects(prev => {
+      const exists = prev.some(p => p.id === newProj.id);
+      return exists ? prev.map(p => p.id === newProj.id ? newProj : p) : [newProj, ...prev];
+    });
     setActiveProject(newProj);
     setActiveView('dashboard');
+    // Sync fresh list from server
+    loadProjects();
   };
 
   if (loadingProjects && !activeProject) {

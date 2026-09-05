@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Check, ArrowRight, Layers, Target, Clock, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, Check, ArrowRight, Layers, Target, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
 import { api } from '../api.js';
 import { Project } from '../types/index.js';
 
@@ -14,8 +14,8 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   onClose,
   onProjectCreated
 }) => {
-  const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -42,25 +42,39 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    setError(null);
+    if (!title.trim()) {
+      setError('Please provide a descriptive project title.');
+      return;
+    }
     setLoading(true);
 
     try {
       const techs = technologiesInput.split(',').map(t => t.trim()).filter(Boolean);
       const res = await api.createProject({
-        title,
-        category,
-        domain,
-        problemStatement,
-        abstract: abstract || problemStatement,
-        technologies: techs,
-        durationWeeks
+        title: title.trim(),
+        category: category.trim() || 'Applied Computing',
+        domain: domain.trim() || 'Software Engineering',
+        problemStatement: problemStatement.trim(),
+        abstract: (abstract || problemStatement).trim(),
+        technologies: techs.length > 0 ? techs : ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
+        durationWeeks: Number(durationWeeks) || 16
       });
 
+      if (!res || !res.project) {
+        throw new Error('Project was not returned from the server. Please try again.');
+      }
+
       onProjectCreated(res.project);
+      // Reset form
+      setTitle('');
+      setProblemStatement('');
+      setAbstract('');
+      setError(null);
       onClose();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('[NewProjectModal] Failed to create project:', err);
+      setError(err?.message || 'Failed to create and initialize capstone project. Please verify all inputs and try again.');
     } finally {
       setLoading(false);
     }
@@ -153,6 +167,20 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+          {error && (
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-800 text-xs"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+              <div className="flex-1">
+                <span className="font-semibold block">Unable to create project</span>
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
+
           <div>
             <label htmlFor="proj-title-input" className="block font-semibold text-zinc-700 mb-1">
               Project Title <span className="text-rose-500">*</span>

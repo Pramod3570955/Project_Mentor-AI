@@ -1411,6 +1411,11 @@ class MemoryDatabase {
     return this.state.learningModules[projectId] || [];
   }
 
+  setLearningModules(projectId: string, modules: LearningModule[]): LearningModule[] {
+    this.state.learningModules[projectId] = modules;
+    return modules;
+  }
+
   updateLearningModule(projectId: string, moduleId: string, updates: Partial<LearningModule>): LearningModule | undefined {
     const modules = this.state.learningModules[projectId];
     if (!modules) return undefined;
@@ -1541,6 +1546,14 @@ class MemoryDatabase {
 
   getEvidences(projectId: string): ProjectEvidence[] {
     return this.state.evidences[projectId] || [];
+  }
+
+  addEvidence(ev: ProjectEvidence): ProjectEvidence {
+    if (!this.state.evidences[ev.projectId]) {
+      this.state.evidences[ev.projectId] = [];
+    }
+    this.state.evidences[ev.projectId].push(ev);
+    return ev;
   }
 
   updateEvidence(projectId: string, evidenceId: string, updates: Partial<ProjectEvidence>): ProjectEvidence | undefined {
