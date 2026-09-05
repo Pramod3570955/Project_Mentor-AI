@@ -1,0 +1,6 @@
+{
+  "name": "ProjectMentor AI",
+  "description": "Final-Year Student Project Intelligence, Development & Academic Management Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
